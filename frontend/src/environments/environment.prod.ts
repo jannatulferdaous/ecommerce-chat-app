@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'http://localhost:5080/api'
+  apiUrl: 'https://ecommerce-chat-app.railway.app/api'
 };

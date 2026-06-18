@@ -13,8 +13,27 @@ var builder = WebApplication.CreateBuilder(args);
 // ---------------------------------------------------------------------------------
 // Database
 // ---------------------------------------------------------------------------------
+//builder.Services.AddDbContext<AppDbContext>(options =>
+//    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+{
+    // Railway provides DATABASE_URL in postgresql://user:pass@host:port/db format
+    var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+
+    if (!string.IsNullOrEmpty(databaseUrl))
+    {
+        // Parse Railway's DATABASE_URL into Npgsql connection string
+        var uri = new Uri(databaseUrl);
+        var userInfo = uri.UserInfo.Split(':');
+        var connectionString = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true";
+        options.UseNpgsql(connectionString);
+    }
+    //else
+    //{
+    //    // Local development — use appsettings.json connection string (SQL Server)
+    //    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    //}
+});
 
 // ---------------------------------------------------------------------------------
 // Identity (registration/login)
